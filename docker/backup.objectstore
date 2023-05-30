@@ -1,0 +1,49 @@
+#!/bin/bash
+# =================================================================================================================
+# Objectstore Backup Support
+# Allows backups to be stored in objectstore.
+# Pre-requisites: Obtain objectstore bucket (https://apps.nrs.gov.bc.ca/int/jira/servicedesk/customer/portal/1/create/701)
+# Requires the following environment variables to be set:
+#   OBJECTSTORE_URL: e.g. nrs.objectstore.gov.bc.ca:443
+#   OBJECTSTORE_ACCESS_KEY: Obtained after requesting an objectstore bucket
+#   OBJECTSTORE_SECRET_KEY: Obtained after requesting an objectstore bucket
+#   OBJECTSTORE_BUCKET: Obtained after requesting an objectstore bucket
+#   OBJECTSTORE_BACKUP_DIRECTORY: directory within your objectstore bucket (e.g. "backups")
+# Created by Barrett Falk bfalk@salussystems.com
+# -----------------------------------------------------------------------------------------------------------------
+
+function objectstoreBackup(){
+  (
+    if [ -z "${OBJECTSTORE_HOST}" ] ; then
+      echo "Objectstore Host Not Defined"
+      return 0
+    fi
+
+    # the file to be backed up to objectstore
+    _filename=${1} 
+    _filenameWithExtension="${_filename}${BACKUP_FILE_EXTENSION}"
+
+    # ECS configuration
+    ECS_ENDPOINT=${OBJECTSTORE_URL}
+    ACCESS_KEY=${OBJECTSTORE_ACCESS_KEY}
+    SECRET_KEY=${OBJECTSTORE_SECRET_KEY}
+    BUCKET_NAME=${OBJECTSTORE_BUCKET}
+    BACKUP_DIRECTORY=${OBJECTSTORE_BACKUP_DIRECTORY}
+
+    # File to upload
+    FILE_PATH=${_filenameWithExtension}
+
+    # Generate timestamp for signing the request
+    DATE=$(date -u "+%Y%m%dT%H%M%SZ")
+
+    # Generate the signature for the request
+    SIGNATURE=$(echo -n "PUT\n\n\n$DATE\n/$BUCKET_NAME/${BACKUP_DIRECTORY}/$(basename "$FILE_PATH")" | openssl sha1 -hmac "$SECRET_KEY" -binary | base64)
+
+    # Perform the file upload using curl
+    curl -X PUT -T "$FILE_PATH" \
+      -H "Host: $ECS_ENDPOINT" \
+      -H "Date: $DATE" \
+      -H "Authorization: AWS $ACCESS_KEY:$SIGNATURE" \
+      "https://$ECS_ENDPOINT/$BUCKET_NAME/${BACKUP_DIRECTORY}/$(basename "$FILE_PATH")"
+  )
+}

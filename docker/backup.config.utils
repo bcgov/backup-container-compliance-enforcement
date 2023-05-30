@@ -320,6 +320,12 @@ function listSettings(){
   else
     echo "- FTP server: ${FTP_URL}"
   fi
+
+  if [ -z "${OBJECTSTORE_HOST}" ]; then
+    echo -e "- Objectstore server: ${_notConfigured}"
+  else
+    echo "- Objectstore server: ${OBJECTSTORE_HOST}"
+  fi
   
   if [ -z "${WEBHOOK_URL}" ]; then
     echo -e "- Webhook Endpoint: ${_notConfigured}"
