@@ -14,7 +14,7 @@
 
 function objectstoreBackup(){
   (
-    if [ -z "${OBJECTSTORE_HOST}" ] ; then
+    if [ -z "${OBJECTSTORE_URL}" ] ; then
       echo "Objectstore Host Not Defined"
       return 0
     fi
