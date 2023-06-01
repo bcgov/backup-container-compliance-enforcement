@@ -34,7 +34,6 @@ function objectstoreBackup(){
     echo "Objectstore ACCESS_KEY: ${OBJECTSTORE_ACCESS_KEY}"
     echo "Objectstore BUCKET_NAME: ${OBJECTSTORE_BUCKET}"
     echo "Objectstore BACKUP_DIRECTORY: ${OBJECTSTORE_BACKUP_DIRECTORY}"
-    echo "Objectstore BACKUP_DIRECTORY: ${OBJECTSTORE_SECRET_KEY}"
 
     # File to upload
     FILE_PATH=${_filenameWithExtension}
@@ -42,10 +41,11 @@ function objectstoreBackup(){
     # Generate timestamp for signing the request
     DATE=$(date -u "+%Y%m%dT%H%M%SZ")
     echo "Date : $DATE"
+    echo "File Path: $FILE_PATH"
 
     # Generate the signature for the request
-    SIGNATURE=$(echo -n "PUT\n\n\n$DATE\n/$BUCKET_NAME/${BACKUP_DIRECTORY}/$(basename "$FILE_PATH")" | openssl sha1 -hmac "$SECRET_KEY" -binary | base64)
-
+    SIGNATURE=$(echo -n -e "PUT\n\n\n$DATE\n/$BUCKET_NAME/${BACKUP_DIRECTORY}/$(basename "$FILE_PATH")" | openssl sha1 -hmac "$SECRET_KEY" -binary | base64)
+    
     # Perform the file upload using curl
     curl -X PUT -T "$FILE_PATH" \
       -H "Host: $ECS_ENDPOINT" \

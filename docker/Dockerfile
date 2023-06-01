@@ -1,5 +1,5 @@
 # This image provides a postgres installation from which to run backups
-FROM postgis/postgis:15-master@sha256:cff6ce199157318c0a6d656f8e081d3113bdf4f0fcd0282d511e49e8210b8839
+FROM quay.io/fedora/postgresql-15
 
 # Change timezone to PST for convenience
 ENV TZ=PST8PDT
@@ -32,7 +32,9 @@ RUN echo $TZ > /etc/timezone
 # ========================================================================================================
 
 # The column command is missing from quay.io/fedora/postgresql-14:14
-# RUN dnf install -y util-linux
+RUN dnf install -y util-linux
+
+RUN dnf install -y openssl
 
 # Important - Reset to the base image's user account.
 USER 26
