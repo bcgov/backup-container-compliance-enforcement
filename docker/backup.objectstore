@@ -23,20 +23,9 @@ function objectstoreBackup(){
     _filename=${1} 
     _filenameWithExtension="${_filename}${BACKUP_FILE_EXTENSION}"
 
-    # ECS configuration
-    ECS_ENDPOINT=${OBJECTSTORE_URL}
-    ACCESS_KEY=${OBJECTSTORE_ACCESS_KEY}
-    SECRET_KEY=${OBJECTSTORE_SECRET_KEY}
-    BUCKET_NAME=${OBJECTSTORE_BUCKET}
-    BACKUP_DIRECTORY=${OBJECTSTORE_BACKUP_DIRECTORY}
-
     echo "Objectstore URL: ${OBJECTSTORE_URL}"
     echo "Objectstore ACCESS_KEY: ${OBJECTSTORE_ACCESS_KEY}"
     echo "Objectstore BUCKET_NAME: ${OBJECTSTORE_BUCKET}"
-    echo "Objectstore BACKUP_DIRECTORY: ${OBJECTSTORE_BACKUP_DIRECTORY}"
-
-    # File to upload
-    FILE_PATH=${_filenameWithExtension}
 
     # Generate timestamp for signing the request
     DATE=$(date -u "+%Y%m%dT%H%M%SZ")
@@ -44,13 +33,13 @@ function objectstoreBackup(){
     echo "File Path: $FILE_PATH"
 
     # Generate the signature for the request
-    SIGNATURE=$(echo -n -e "PUT\n\n\n$DATE\n/$BUCKET_NAME/${BACKUP_DIRECTORY}/$(basename "$FILE_PATH")" | openssl sha1 -hmac "$SECRET_KEY" -binary | base64)
+    SIGNATURE=$(echo -n -e "PUT\n\n\n$DATE\n/${OBJECTSTORE_BUCKET}${_filenameWithExtension}" | openssl sha1 -hmac "${OBJECTSTORE_SECRET_KEY}" -binary | base64)
     
     # Perform the file upload using curl
     curl -X PUT -T "$FILE_PATH" \
-      -H "Host: $ECS_ENDPOINT" \
+      -H "Host: ${OBJECTSTORE_URL}" \
       -H "Date: $DATE" \
-      -H "Authorization: AWS $ACCESS_KEY:$SIGNATURE" \
-      "https://$ECS_ENDPOINT/$BUCKET_NAME/${BACKUP_DIRECTORY}/$(basename "$FILE_PATH")"
+      -H "Authorization: AWS ${OBJECTSTORE_ACCESS_KEY}:$SIGNATURE" \
+      "https://${OBJECTSTORE_URL}/${OBJECTSTORE_BUCKET}${_filenameWithExtension}"
   )
 }
