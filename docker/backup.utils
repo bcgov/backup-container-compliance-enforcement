@@ -107,6 +107,7 @@ function runBackups(){
           ftpBackup "${filename}"
           objectstoreBackup "${filename}"
           pruneBackups "${backupDir}" "${database}"
+          pruneObjectstoreBackups "${backupDir}" "${database}"
         else
           logError "Failed to backup ${database}.${elapsedTime}"
         fi

@@ -143,6 +143,61 @@ function pruneBackups(){
   )
 }
 
+function pruneObjectstoreBackups(){
+  (
+    _backupDir=${1}
+    _databaseSpec=${2}
+    _backupType=${3:-''}
+    _pruneDir="$(dirname "${_backupDir}")"
+    _numBackupsToRetain=$(getNumBackupsToRetain "${_backupType}")
+    _coreFilename=$(generateCoreFilename ${_databaseSpec})
+
+    if [ -z "${OBJECTSTORE_URL}" ] ; then
+      echo "Objectstore Host Not Defined - no need to remove objectstore backups"
+      return 0
+    fi
+
+
+    if [ -d ${_pruneDir} ]; then
+      let _index=${_numBackupsToRetain}+1
+      _filesToPrune=$(find ${_pruneDir}* -type f -printf '%T@ %p\n' | grep ${_coreFilename} | sort -r | tail -n +${_index} | sed 's~^.* \(.*$\)~\1~')
+
+      if [ ! -z "${_filesToPrune}" ]; then
+        echoYellow "\nPruning ${_coreFilename} backups from ${_pruneDir} ..."
+        objectstoreDelete "${_filesToPrune}"
+      fi
+    fi
+  )
+}
+
+function objectstoreDelete(){
+  (
+    # the file to be backed up to objectstore
+    _filename=${1} 
+    _filenameWithExtension="${_filename}${BACKUP_FILE_EXTENSION}"
+
+    echo "Objectstore URL: ${OBJECTSTORE_URL}"
+    echo "Objectstore ACCESS_KEY: ${OBJECTSTORE_ACCESS_KEY}"
+    echo "Objectstore BUCKET_NAME: ${OBJECTSTORE_BUCKET}"
+
+    # Generate timestamp for signing the request
+    DATE=$(date -u "+%Y%m%dT%H%M%SZ")
+    echo "Date : $DATE"
+    echo "File Path: ${_filenameWithExtension}"
+
+    # Generate the signature for the request
+    SIGNATURE=$(echo -n -e "PUT\n\n\n$DATE\n/${OBJECTSTORE_BUCKET}${_filenameWithExtension}" | openssl sha1 -hmac "${OBJECTSTORE_SECRET_KEY}" -binary | base64)
+    
+    # Perform the file upload using curl
+    curl -X DELETE -T "${_filenameWithExtension}" \
+      -H "Host: ${OBJECTSTORE_URL}" \
+      -H "Date: $DATE" \
+      -H "Authorization: AWS ${OBJECTSTORE_ACCESS_KEY}:$SIGNATURE" \
+      "https://${OBJECTSTORE_URL}/${OBJECTSTORE_BUCKET}${_filenameWithExtension}"
+  )
+}
+
+
 function touchBackupFile() {
   (
     # For safety, make absolutely certain the directory and file exist.

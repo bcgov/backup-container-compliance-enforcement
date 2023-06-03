@@ -30,13 +30,13 @@ function objectstoreBackup(){
     # Generate timestamp for signing the request
     DATE=$(date -u "+%Y%m%dT%H%M%SZ")
     echo "Date : $DATE"
-    echo "File Path: $FILE_PATH"
+    echo "File Path: ${_filenameWithExtension}"
 
     # Generate the signature for the request
     SIGNATURE=$(echo -n -e "PUT\n\n\n$DATE\n/${OBJECTSTORE_BUCKET}${_filenameWithExtension}" | openssl sha1 -hmac "${OBJECTSTORE_SECRET_KEY}" -binary | base64)
     
     # Perform the file upload using curl
-    curl -X PUT -T "$FILE_PATH" \
+    curl -X PUT -T "${_filenameWithExtension}" \
       -H "Host: ${OBJECTSTORE_URL}" \
       -H "Date: $DATE" \
       -H "Authorization: AWS ${OBJECTSTORE_ACCESS_KEY}:$SIGNATURE" \
