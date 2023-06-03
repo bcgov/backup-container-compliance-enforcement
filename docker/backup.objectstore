@@ -19,6 +19,8 @@ function objectstoreBackup(){
       return 0
     fi
 
+    echoGreen "Backing up to objectstore ${OBJECTSTORE_URL}"
+
     # the file to be backed up to objectstore
     _filename=${1} 
     _filenameWithExtension="${_filename}${BACKUP_FILE_EXTENSION}"

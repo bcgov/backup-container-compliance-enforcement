@@ -157,7 +157,7 @@ function pruneObjectstoreBackups(){
       return 0
     fi
 
-    echo "Pruning Objectstore Backups"
+    echoGreen "Pruning Objectstore Backups"
 
     if [ -d ${_pruneDir} ]; then
       let _index=${_numBackupsToRetain}+1

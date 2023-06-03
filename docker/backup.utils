@@ -106,8 +106,8 @@ function runBackups(){
           logInfo "Successfully backed up ${database}.\nBackup written to ${backupPath}.\nDatabase Size: ${dbSize}\nBackup Size: ${backupSize}${elapsedTime}"
           ftpBackup "${filename}"
           objectstoreBackup "${filename}"
-          pruneBackups "${backupDir}" "${database}"
           pruneObjectstoreBackups "${backupDir}" "${database}"
+          pruneBackups "${backupDir}" "${database}"
         else
           logError "Failed to backup ${database}.${elapsedTime}"
         fi
