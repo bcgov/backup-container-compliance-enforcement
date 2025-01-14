@@ -1,3 +1,4 @@
+**Archived as of January 2025. Use [bcgov/backup-container](https://github.com/bcgov/backup-container) instead**
 ---
 title: Backup Container
 description: A simple containerized backup solution for backing up one or more supported databases to a secondary location.
@@ -15,6 +16,8 @@ labels:
   - mssql
   - database
 ---
+
+
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
